@@ -128,8 +128,9 @@ class GeminiClient:
                     full_path.write_bytes(image["data"])
                     saved.append(str(full_path))
                 else:
-                    # full_size=True: tải ảnh độ phân giải gốc (thư viện tự xử lý chuyển hướng/cookie)
-                    path = await image.save(path=str(folder), full_size=True)
+                    # full_size=True: tải ảnh độ phân giải gốc (chỉ áp dụng cho ảnh do Gemini tạo)
+                    kwargs = {"full_size": True} if type(image).__name__ == "GeneratedImage" else {}
+                    path = await image.save(path=str(folder), **kwargs)
                     if path:
                         saved.append(path)
             except Exception as e:
