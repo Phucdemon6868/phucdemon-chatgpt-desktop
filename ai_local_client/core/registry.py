@@ -86,6 +86,19 @@ class Registry:
         self._factories = {} if providers else _factories(settings)
         self._lock = threading.Lock()
 
+    def reconfigure(self, settings: Settings) -> None:
+        """Áp dụng cấu hình mới (từ tab Cài đặt): đóng các nhà cung cấp cũ, lần dùng sau tạo lại."""
+        with self._lock:
+            old = list(self._instances.values())
+            self.settings = settings
+            self._factories = _factories(settings)
+            self._instances = {}
+        for provider in old:
+            try:
+                provider.close()
+            except Exception as e:   # noqa: BLE001
+                log.debug("Lỗi khi đóng %s: %s", getattr(provider, "name", provider), e)
+
     @property
     def names(self) -> list[str]:
         return list(self._instances) + [n for n in self._factories if n not in self._instances]

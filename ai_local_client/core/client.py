@@ -188,6 +188,14 @@ class ChatGPTClient(Provider):
             model=parser.model or payload["model"],
         )
 
+    def check(self) -> str:
+        self.tokens.invalidate()
+        try:
+            self.tokens.get()
+        except AuthError as e:
+            raise ChatGPTError(str(e), e.status) from e
+        return "Đăng nhập thành công"
+
     def list_models(self) -> list[str]:
         """Lấy danh sách model từ tài khoản; lỗi thì dùng danh sách trong cấu hình."""
         try:

@@ -25,8 +25,10 @@ Có ba cách dùng:
 
 ```bash
 pip install -r requirements.txt
-cp .env.example .env    # điền khóa/cookie của nhà cung cấp bạn dùng
+python -m ui.app        # mở http://127.0.0.1:7860 → tab ⚙️ Cài đặt để nhập khóa/cookie
 ```
+
+Cách dễ nhất là nhập API key / cookie ngay trên **Web UI, tab ⚙️ Cài đặt**: có nút **Kiểm tra** kết nối, bấm **Lưu** là áp dụng ngay (không cần khởi động lại) và được ghi vào file `.env` (quyền 600). Ô bí mật chỉ hiện dạng `••••abcd`, để trống nghĩa là giữ nguyên. Nếu thích, bạn vẫn có thể sửa `.env` bằng tay (`cp .env.example .env`).
 
 Lấy thông tin đăng nhập:
 - **ChatGPT web**: mở https://chatgpt.com và đăng nhập → F12 → Network → chọn request bất kỳ tới chatgpt.com → copy giá trị header `cookie`.
@@ -76,6 +78,12 @@ Giới hạn: không hỗ trợ function calling/`tools`, ảnh/tệp đầu và
 ```bash
 python -m ui.app --port 7860   # mở http://127.0.0.1:7860
 ```
+
+- **💬 Chat**: chọn model, lịch sử hội thoại, ảnh do AI tạo hiển thị ngay trong khung chat.
+- **⚙️ Cài đặt**: API key / cookie / token của từng AI (mỗi AI một tab: 🔑 API chính thức và 🌐 Web), model mặc định, proxy cho bản web, thời gian chờ, số lần thử lại, chat tạm, thư mục ảnh, khóa bảo vệ proxy.
+  Thay đổi áp dụng ngay cho UI; proxy `python -m server` và CLI đọc `.env` khi khởi động nên cần chạy lại.
+
+> UI mặc định chỉ mở ở `127.0.0.1`. Đừng chạy với `--host 0.0.0.0` trên mạng lạ: ai mở được UI đều sửa được cookie/khóa trong tab Cài đặt.
 
 Hội thoại được lưu ở `data/chats.db` và nối tiếp đúng thread kể cả sau khi khởi động lại. Có thể đổi model (kể cả đổi nhà cung cấp) giữa cuộc trò chuyện: lịch sử được chuyển sang nhà cung cấp mới.
 

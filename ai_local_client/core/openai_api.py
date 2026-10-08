@@ -43,6 +43,12 @@ class OpenAICompatProvider(Provider):
             return ProviderError(f"{self.name} HTTP {e.status_code}: {e.message}", e.status_code)
         return ProviderError(f"{self.name}: {e}", 502)
 
+    def check(self) -> str:
+        try:
+            return f"{sum(1 for _ in self._client.models.list())} model"
+        except self._openai.OpenAIError as e:
+            raise self._error(e) from e
+
     def list_models(self) -> list[str]:
         try:
             ids = sorted(m.id for m in self._client.models.list() if self._filter(m.id))

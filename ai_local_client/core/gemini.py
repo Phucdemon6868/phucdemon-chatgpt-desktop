@@ -36,6 +36,14 @@ class GeminiAPIProvider(Provider):
         self._image_dir = image_dir
         self._fallback = list(fallback_models or [])
 
+    def check(self) -> str:
+        try:
+            return f"{sum(1 for _ in self._client.models.list())} model"
+        except self._errors.APIError as e:
+            raise ProviderError(f"gemini HTTP {e.code}: {e.message}", e.code) from e
+        except Exception as e:   # noqa: BLE001
+            raise ProviderError(f"gemini: {e}", 502) from e
+
     def list_models(self) -> list[str]:
         try:
             ids = []
@@ -135,6 +143,17 @@ class GeminiWebProvider(Provider):
         except Exception as e:   # noqa: BLE001
             raise ProviderError(f"gemini-web: xác thực thất bại ({e}). Cookie có thể đã hết hạn.", 401) from e
         self._ready = True
+
+    def check(self) -> str:
+        return f"Đăng nhập thành công, {len(self.list_models()) - 1} model"
+
+    def close(self) -> None:
+        if self._ready:
+            try:
+                self._loop.run(self._client.close(), timeout=10)
+            except Exception as e:   # noqa: BLE001
+                log.debug("gemini-web: lỗi khi đóng: %s", e)
+            self._ready = False
 
     def list_models(self) -> list[str]:
         self._ensure_ready()

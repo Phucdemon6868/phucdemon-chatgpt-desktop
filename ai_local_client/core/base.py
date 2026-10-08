@@ -56,6 +56,13 @@ class Provider(ABC):
     ) -> Iterator[StreamEvent]:
         """Yield StreamEvent("delta") cho từng mẩu text và một StreamEvent("done") ở cuối."""
 
+    def check(self) -> str:
+        """Kiểm tra đăng nhập/khóa bằng một request thật; lỗi thì ném ProviderError."""
+        return f"{len(self.list_models())} model"
+
+    def close(self) -> None:
+        """Giải phóng tài nguyên (kết nối, luồng nền) khi cấu hình thay đổi."""
+
     def ask(self, prompt: str, **kwargs) -> StreamEvent:
         """Phiên bản không stream: trả về StreamEvent("done")."""
         final = None

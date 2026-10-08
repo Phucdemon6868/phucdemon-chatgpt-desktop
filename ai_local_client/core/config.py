@@ -95,3 +95,50 @@ def load_settings(env_file: str | Path = ".env") -> Settings:
         max_retries=int(env.get("CHATGPT_MAX_RETRIES", "3")),
         request_timeout=int(env.get("CHATGPT_TIMEOUT", "180")),
     )
+
+
+# ─────────────────────────── Lưu cấu hình (dùng cho tab Cài đặt) ───────────
+
+# Biến .env ↔ trường của Settings
+ENV_FIELDS = {
+    "CHATGPT_COOKIE": "cookie",
+    "OPENAI_API_KEY": "openai_api_key",
+    "GEMINI_API_KEY": "gemini_api_key",
+    "GEMINI_COOKIE": "gemini_cookie",
+    "DEEPSEEK_API_KEY": "deepseek_api_key",
+    "DEEPSEEK_USER_TOKEN": "deepseek_user_token",
+    "DEEPSEEK_COOKIE": "deepseek_cookie",
+    "WEB_PROXY": "web_proxy",
+    "DEFAULT_MODEL": "default_model",
+    "PROXY_API_KEY": "proxy_api_key",
+    "CHATGPT_TEMPORARY_CHAT": "temporary_chat",
+    "IMAGE_DIR": "image_dir",
+    "CHATGPT_MAX_RETRIES": "max_retries",
+    "CHATGPT_TIMEOUT": "request_timeout",
+}
+# Không bao giờ hiển thị lại nguyên văn trên giao diện
+SECRET_KEYS = {"CHATGPT_COOKIE", "OPENAI_API_KEY", "GEMINI_API_KEY", "GEMINI_COOKIE", "DEEPSEEK_API_KEY",
+               "DEEPSEEK_USER_TOKEN", "DEEPSEEK_COOKIE", "PROXY_API_KEY"}
+
+
+def save_env(updates: dict[str, str], path: str | Path = ".env") -> None:
+    """
+    Ghi KEY=VALUE vào file .env: sửa dòng đã có, thêm dòng mới ở cuối, giữ nguyên chú thích.
+    Đồng thời cập nhật os.environ để load_settings() đọc được giá trị mới ngay.
+    """
+    p = Path(path)
+    lines = p.read_text(encoding="utf-8").splitlines() if p.is_file() else []
+    clean = {k: str(v).replace("\r", " ").replace("\n", " ").strip() for k, v in updates.items()}
+    remaining = dict(clean)
+    for i, line in enumerate(lines):
+        key = line.partition("=")[0].strip()
+        if "=" in line and not line.lstrip().startswith("#") and key in remaining:
+            lines[i] = f"{key}={remaining.pop(key)}"
+    lines += [f"{k}={v}" for k, v in remaining.items()]
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    try:
+        p.chmod(0o600)   # file chứa cookie/khóa: chỉ chủ sở hữu được đọc
+    except OSError:
+        pass
+    os.environ.update(clean)

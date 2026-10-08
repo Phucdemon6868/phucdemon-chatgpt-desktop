@@ -295,6 +295,15 @@ class DeepSeekWebProvider(Provider):
                 self._pow = DeepSeekPow()
         return self._pow.make_header(challenge)
 
+    def check(self) -> str:
+        try:
+            resp = self.session.get(BASE_URL + "/api/v0/users/current", headers=self._headers())
+        except Exception as e:   # noqa: BLE001
+            raise ProviderError(f"deepseek-web: lỗi mạng: {e}", 502) from e
+        self._check_status(resp)
+        user = unwrap_biz_data(resp.json(), status_on_error=401)
+        return f"Đăng nhập thành công: {user.get('email') or user.get('mobile_number') or user.get('id') or 'OK'}"
+
     def list_models(self) -> list[str]:
         return list(self._models)
 
